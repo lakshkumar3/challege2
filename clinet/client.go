@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-func Client() {
+func ClientStart() {
 
 	dest := ":" + strconv.Itoa(settings.GetInt("LOCAL_PORT"))
 
@@ -45,11 +45,14 @@ func readConnection(conn net.Conn) {
 
 		for {
 			ok := scanner.Scan()
+			if !ok {
+				break
+			}
 			text := scanner.Text()
 
 			command := handleCommands(text)
 			if !command {
-				fmt.Println(" %s\n> ", text)
+				fmt.Println(text)
 			}
 
 			if !ok {

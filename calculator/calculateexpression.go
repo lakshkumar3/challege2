@@ -7,20 +7,18 @@ import (
 	"os/signal"
 )
 
-func CalculateExpression(inputExpression string) (string, error) {
+func CalculateExpression(inputExpression string) (float64, error) {
 	log.Info("CalculateExpression started ")
 
 	postfixString := ToPostfix(inputExpression)
 	result, err := SolvePostfix(postfixString)
 	if err != nil {
 		log.Error("CalculateExpression " + err.Error())
-		return "", err
+		return 0, err
 	} else {
 		fmt.Printf(inputExpression + " = ")
 		fmt.Println(result)
-		strResult := fmt.Sprintf(" %.2f", result)
-		output := inputExpression + " =" + strResult
-		return output, nil
+		return result, nil
 	}
 }
 func calculateExpression() {

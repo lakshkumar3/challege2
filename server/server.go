@@ -12,12 +12,11 @@ import (
 	"strconv"
 )
 
-func server() error {
+func StartServer() error {
 	var totalCount int = 0
-	log.Info("program exiting ")
+	log.Info("Server staring ")
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, os.Interrupt)
-
 	src := ":" + strconv.Itoa(settings.GetInt("LOCAL_PORT"))
 	listener, err := net.Listen("tcp", src)
 	if err != nil {
@@ -36,13 +35,13 @@ func server() error {
 
 	for {
 		conn, err := listener.Accept()
+		defer conn.Close()
 		if err != nil {
 			fmt.Printf("Some connection error: %s\n", err)
 		}
 		serviceInfoMsg := "Welcome this service calculates the expression  it can only perform 4 operations  + - / *"
 		conn.Write([]byte(serviceInfoMsg))
 		go handleConnection(conn, &totalCount)
-		defer conn.Close()
 	}
 	return nil
 }
@@ -55,13 +54,10 @@ func handleConnection(conn net.Conn, total_count *int) {
 	scanner := bufio.NewScanner(conn)
 
 	for {
-		conn.Write([]byte("\nEnter Expresstion or type /quit to Exit : "))
 		ok := scanner.Scan()
-
 		if !ok {
 			break
 		}
-
 		handleMessage(scanner.Text(), conn, &client_count)
 
 	}
@@ -82,24 +78,23 @@ func handleMessage(message string, conn net.Conn, client_count *int) {
 			fmt.Println("< " + "%quit%")
 			conn.Write([]byte("%quit%\n"))
 			conn.Close()
-
 		default:
 			result, err := calculator.CalculateExpression(message)
 			if err != nil {
 				log.Error(err.Error())
 				conn.Write([]byte(err.Error() + "\n"))
 			} else {
+				strResult := fmt.Sprintf(" %.2f", result)
+				output := message + " =" + strResult
+
 				*client_count++
 				clientaddress := conn.RemoteAddr().String()
 
-				log.Info("client " + clientaddress + " " + result)
-				conn.Write([]byte(result + "  Expression count " + strconv.Itoa(*client_count) + "\n"))
+				log.Info("client " + clientaddress + " " + output)
+				conn.Write([]byte(output + "  Expression count " + strconv.Itoa(*client_count) + "\n"))
+				conn.Write([]byte("\nEnter Expresstion or type /quit to Exit : "))
+
 			}
 		}
 	}
-}
-func Start() error {
-	err := server()
-	return err
-
 }

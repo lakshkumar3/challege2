@@ -32,7 +32,7 @@ func main() {
 		log.Fatal("Could not parse configuration file  " + flagConfigPath + "/" + flagEnvironment + ":" + err.Error())
 		return
 	}
-	err := server.Start()
+	err := server.StartServer()
 	if err != nil {
 		log.Error("server returing error " + err.Error())
 	}
